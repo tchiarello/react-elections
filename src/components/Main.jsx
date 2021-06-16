@@ -1,6 +1,7 @@
 import React from "react";
-
-const intl = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+import Select from "./Select";
+import GeneralInfo from "./GeneralInfo";
+import CandidateCard from "./CandidateCard";
 
 export default function Main() {
   const [selectedCityId, setSelectedCityId] = React.useState("");
@@ -51,66 +52,45 @@ export default function Main() {
     );
 
   return (
-    <div>
-      <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4">
+      {currentCity && (
         <div>
-          <h4>Choose a City</h4>
-          <select value={selectedCityId} onChange={handleChangeCities}>
-            {cities.map((city, index) => (
-              <option value={city.id} key={index}>
-                {city.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <Select
+            selectedCityId={selectedCityId}
+            cities={cities}
+            onChangeCities={handleChangeCities}
+          />
 
-        {currentCity && (
-          <div>
-            <div>
-              <h2>Election at {currentCity.name}</h2>
-              <div>
-                <p>
-                  Voting Population: {intl.format(currentCity.votingPopulation)}
-                </p>
-                <p>Absence: {intl.format(currentCity.absence)}</p>
-                <p>Presence: {intl.format(currentCity.presence)}</p>
-              </div>
-            </div>
+          <GeneralInfo
+            currentCity={currentCity}
+            eligibleCandidates={eligibleCandidates}
+          />
 
-            <div className="divide-y-4 divide-yellow-600 divide-solid">
-              <p>{eligibleCandidates.length} Candidates</p>
-            </div>
+          <div className="flex flex-wrap justify-center">
+            {eligibleCandidates.map((candidate, index) => {
+              const { votes } = election.find(
+                (session) =>
+                  session.candidateId === candidate.id &&
+                  session.cityId === currentCity.id
+              );
 
-            <div>
-              <div className="divide-y-4 divide-yellow-600 divide-solid">
-                {eligibleCandidates.map((candidate, index) => {
-                  const { votes } = election.find(
-                    (session) =>
-                      session.candidateId === candidate.id &&
-                      session.cityId === selectedCityId
-                  );
+              const isElected = index === 0;
 
-                  const percentage = (votes * 100) / currentCity.presence;
+              const percentage = (votes * 100) / currentCity.presence;
 
-                  const isElected = index === 0;
-
-                  return (
-                    <div key={index}>
-                      {/* <img src={`/img/${candidate.username}.png`} height="20" alt="" /> */}
-
-                      <p>{intl.format(percentage)}%</p>
-                      <span>{intl.format(votes)} votes</span>
-
-                      <p>{candidate.name}</p>
-                      <p>{isElected ? "Elected" : "Not Elected"}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+              return (
+                <CandidateCard
+                  key={index}
+                  votes={votes}
+                  isElected={isElected}
+                  candidate={candidate}
+                  percentage={percentage}
+                />
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
